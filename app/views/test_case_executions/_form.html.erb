@@ -1,0 +1,85 @@
+<div class="box tabular">
+  <p>
+    <%= form.label :test_plan %>
+    <%= (@test_plan || @test_case_execution.test_plan).name %>
+  </p>
+  <p>
+    <%= form.label :test_case %>
+    <%= (@test_case || @test_case_execution.test_case).name %>
+  </p>
+  <p>
+    <%= form.label :environment %>
+    <%= @test_case.environment %>
+  </p>
+  <p>
+    <%= form.label :scenario %>
+    <%= form.text_area :scenario, readonly: true, id: "scenario",
+        cols: 60, rows: [[10, @test_case.scenario.to_s.length / 50].max, 20].min,
+        value: @test_case.scenario %>
+  </p>
+  <p>
+    <%= form.label :expected %>
+    <%= form.text_area :expected, readonly: true, id: "expected",
+        cols: 60, rows: [[10, @test_case.expected.to_s.length / 50].max, 20].min,
+        value: @test_case.expected %>
+  </p>
+  <% status = @test_case_execution.status %>
+  <p>
+    <%= form.label :status %>
+    <%= form.select :status_id, (@status_candidates || status_candidates_for_select),
+        selected: (@test_case_execution.status_id || @statuses&.first&.id) %>
+  </p>
+  <p>
+    <%= form.label :executor %>
+    <% if @test_case_execution and @test_case_execution.executor %>
+      <%= form.select :executor_id, @user_candidates, selected: @test_case_execution.executor.id %>
+    <% else %>
+      <%= form.select :executor_id, @user_candidates %>
+    <% end %>
+  </p>
+  <p>
+    <%= form.label :execution_date %>
+    <%= form.date_field :execution_date,
+        value: (@test_case_execution.execution_date ? @test_case_execution.execution_date.strftime("%F") : Time.now.strftime("%F")), required: true %>
+  </p>
+  <p>
+    <%= form.label :defect_issue %>
+    <%= form.text_field :defect_issue_id, id: 'defect_issue_id' %>
+    <%= link_to l(:label_issue_new),
+                @issue_template_uri,
+                :target => "_blank",
+                :class => "icon icon-add new-issue" %>
+  </p>
+  <p>
+    <%= form.label :automation_source %>
+    <%= form.select :automation_source,
+        { l(:label_automation_manual) => nil, 'Jenkins' => 'jenkins', 'CI' => 'ci', l(:label_automation_other) => 'other' },
+        { include_blank: false, selected: (@test_case_execution.automation_source || '') } %>
+  </p>
+  <p>
+    <%= form.label :external_run_id %>
+    <%= form.text_field :external_run_id, size: 40, id: 'external_run_id' %>
+  </p>
+  <p>
+    <%= form.label :build_url %>
+    <%= form.url_field :build_url, size: 60, id: 'build_url' %>
+  </p>
+  <p>
+    <%= form.label :duration_seconds %>
+    <%= form.number_field :duration_seconds, id: 'duration_seconds' %>
+  </p>
+  <p>
+    <%= form.label :comment %>
+    <%= form.text_area :comment,
+        cols: 60, rows: [[10, @test_case.expected.to_s.length / 50].max, 20].min %>
+  </p>
+</div>
+
+<div class="box">
+  <p>
+    <%= form.label l :label_attachment_plural %>
+    <%= render partial: 'attachments/form' %>
+  </p>
+</div>
+
+<%= javascript_tag "observeAutocompleteField('defect_issue_id', '#{escape_javascript auto_complete_issues_path(project_id: @project, issue_id: @test_case_execution.defect_issue_id)}')" %>

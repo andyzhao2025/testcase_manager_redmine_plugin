@@ -1,0 +1,157 @@
+<%= render :partial => 'action_menu', :locals => {:project_id => @project.name } %>
+
+<h2 class="inline-flex"><%= breadcrumb %>#<%= @test_case.id %> <%= @test_case.name %></h2>
+
+<div class="issue details">
+  <div class="subject">
+    <div>
+      <h3><%= @test_case.name %></h3>
+    </div>
+  </div>
+  <div class="attributes">
+    <div class="splitcontent">
+      <div class="splitcontentleft">
+        <div class="assigned-to attribute">
+          <div class="label"><%=l(:field_user)%></div>
+          <div id="user" class="value"><%= @test_case.user.name if @test_case.user %></div>
+        </div>
+        <div class="case-state attribute">
+          <div class="label"><%=l(:field_case_state)%></div>
+          <div id="case_state" class="value">
+            <%= @test_case.case_state ? l("label_case_state_#{@test_case.case_state}", default: @test_case.case_state) : l(:label_none) %>
+          </div>
+        </div>
+        <div class="priority attribute">
+          <div class="label"><%=l(:field_priority)%></div>
+          <div id="priority" class="value"><%= @test_case.priority.presence || l(:label_none) %></div>
+        </div>
+      </div>
+      <div class="splitcontentleft">
+        <div class="environment-date attribute">
+          <div class="label"><%=l(:field_environment)%></div>
+          <div id="environment" class="value"><%= @test_case.environment %></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <% if @test_case.test_case_steps.any? %>
+  <div class="attributes">
+    <div class="attribute">
+      <div class="label"><%=l(:label_test_case_steps)%></div>
+    </div>
+    <div id="steps">
+      <table class="list steps">
+        <thead>
+          <tr><th><%=l(:field_step_position)%></th><th><%=l(:field_step_action)%></th><th><%=l(:field_step_expected_result)%></th></tr>
+        </thead>
+        <tbody>
+          <% @test_case.test_case_steps.order(:position).each do |step| %>
+            <tr>
+              <td><%= step.position %></td>
+              <td><%= textilizable(step.action) %></td>
+              <td><%= textilizable(step.expected_result) %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <% end %>
+  <div class="attributes">
+    <div class="attribute">
+      <div class="label"><%=l(:field_scenario)%></div>
+    </div>
+    <div id="scenario">
+      <%= textilizable(@test_case.scenario) %>
+    </div>
+  </div>
+  <div class="attributes">
+    <div class="attribute">
+      <div class="label"><%=l(:field_expected)%></div>
+    </div>
+    <div id="expected">
+      <%= textilizable(@test_case.expected) %>
+    </div>
+  </div>
+  <% if @test_case.attachments.any? %>
+    <p><strong><%=l(:label_attachment_plural)%></strong></p>
+    <%= link_to_attachments @test_case, :thumbnails => true %>
+    <hr/>
+  <% end %>
+</div>
+
+<div id="test_case_execution_tree">
+  <% if @test_plan_given %>
+    <div class="contextual">
+      <%= link_to l(:label_test_case_execution_new),
+                  new_project_test_plan_test_case_test_case_execution_path(test_case_id: @test_case.id),
+                  class: "icon icon-add" %>
+    </div>
+  <% end %>
+  <p><%=l(:label_test_case_executions)%></p>
+  <% if @test_case_executions.any? %>
+  <table class="list issues odd-even">
+    <thead>
+      <tr>
+        <th>#</th>
+        <% unless @test_plan_given %>
+        <th><%=l(:field_test_plan)%></th>
+        <% end %>
+        <th><%=l(:field_status)%></th>
+        <th><%=l(:field_executor)%></th>
+        <th><%=l(:field_execution_date)%></th>
+        <th><%=l(:field_defect_issue)%></th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @test_case_executions.each do |test_case_execution|
+           next unless test_case_execution.test_case
+           next unless test_case_execution.test_plan %>
+      <tr class="list issue">
+        <td><%= link_to test_case_execution.id,
+                        project_test_plan_test_case_test_case_execution_path(
+                          test_case_id: @test_case.id,
+                          test_plan_id: test_case_execution.test_plan.id,
+                          id: test_case_execution.id) %></td>
+        <% unless @test_plan_given %>
+        <td><%= link_to test_case_execution.test_plan.name,
+                        project_test_plan_path(id: test_case_execution.test_plan.id) %></td>
+        <% end %>
+        <td>
+          <% if test_case_execution.status %>
+            <%= content_tag(:span, test_case_execution.status.name, class: "status #{test_case_execution.status.key}") %>
+          <% else %>
+            <%= l(:label_none) %>
+          <% end %>
+        </td>
+        <td><%= test_case_execution.executor ? test_case_execution.executor.name : l(:label_none) %></td>
+        <td><%= yyyymmdd_date(test_case_execution.execution_date) %></td>
+        <td>
+          <% if test_case_execution.defect_issue %>
+          <%= link_to test_case_execution.defect_issue, issue_path(id: test_case_execution.defect_issue.id) %>
+          <% end %>
+        </td>
+        <td>
+          <%= link_to l(:button_edit),
+                      @test_plan_given ?
+                         edit_project_test_plan_test_case_test_case_execution_path(id: test_case_execution.id,
+                                                                                   test_plan_id: test_case_execution.test_plan.id,
+                                                                                   test_case_id: @test_case.id) :
+                         edit_project_test_case_test_case_execution_path(id: test_case_execution.id,
+                                                                         test_case_id: @test_case.id),
+                      title: l(:label_test_case_execution_edit),
+                      class: "icon icon-edit" %>
+        </td>
+      </tr>
+      <% end %>
+    </tbody>
+  </table>
+  <% else %>
+  <p class="nodata"><%= l(:label_no_data) %></p>
+  <% end %>
+</div>
+
+<% content_for :sidebar do %>
+  <%= render :partial => 'test_cases/sidebar' %>
+<% end %>

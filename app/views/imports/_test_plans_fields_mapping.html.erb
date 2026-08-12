@@ -1,0 +1,41 @@
+<p>
+  <label for="import_mapping_project_id"><%= l(:label_project) %></label>
+  <%= select_tag 'import_settings[mapping][project_id]',
+        options_for_select(project_tree_options_for_select(@import.allowed_target_projects, :selected => @import.project)),
+        :id => 'import_mapping_project_id' %>
+</p>
+<p>
+  <label for="import_mapping_test_plan_id"><%= l(:field_test_plan_id) %></label>
+  <%= mapping_select_tag @import, 'test_plan_id', :required => false %>
+  <span class="icon icon-help"><%= l(:notice_import_tp_test_plan_id) %></span>
+</p>
+<p>
+  <label for="import_mapping_test_plan"><%= l(:field_test_plan) %></label>
+  <%= mapping_select_tag @import, 'test_plan', :required => true %>
+  <span class="icon icon-help"><%= l(:notice_import_tp_test_plan) %></span>
+</p>
+<p>
+  <label for="import_mapping_plan_state"><%= l(:field_plan_state) %></label>
+  <%= mapping_select_tag @import, 'plan_state' %>
+</p>
+<p>
+  <label for="import_mapping_estimated_bug"><%= l(:field_estimated_bug) %></label>
+  <%= mapping_select_tag @import, 'estimated_bug' %>
+</p>
+<p>
+  <label for="import_mapping_user"><%= l(:field_user) %></label>
+  <%= mapping_select_tag @import, 'user' %>
+</p>
+<p>
+  <label for="import_mapping_begin_date"><%= l(:field_begin_date) %></label>
+  <%= mapping_select_tag @import, 'begin_date' %>
+</p>
+<p>
+  <label for="import_mapping_end_date"><%= l(:field_end_date) %></label>
+  <%= mapping_select_tag @import, 'end_date' %>
+</p>
+<p>
+  <label for="import_mapping_test_case_ids"><%= l(:field_test_cases) %></label>
+  <%= mapping_select_tag @import, 'test_case_ids' %>
+  <span class="icon icon-help"><%= l(:notice_import_tp_test_cases) %></span>
+</p>

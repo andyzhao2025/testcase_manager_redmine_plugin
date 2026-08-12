@@ -1,0 +1,79 @@
+---
+test_case_executions_001:
+  id: 1
+  status_id: 3
+  comment: Comment 1
+  executor_id: 2
+  defect_issue_id: 1
+  execution_date: 2022-02-10 00:00:00 +09:00
+  test_plan_id: 3
+  test_plan_case_id: 2
+  test_case_id: 2
+  project_id: 3
+test_case_executions_002:
+  id: 2
+  status_id: 3
+  comment: Comment 2
+  executor_id: 1
+  execution_date: 2022-02-10 00:00:00 +09:00
+  test_plan_id: 3
+  test_plan_case_id: 3
+  test_case_id: 3
+  project_id: 3
+test_case_executions_003:
+  id: 3
+  status_id: 4
+  comment: Comment 3
+  executor_id: 2
+  defect_issue_id: 1
+  execution_date: 2022-02-11 00:00:00 +09:00
+  test_plan_id: 3
+  # The new model holds at most one execution per test_plan_case (uniqueness
+  # on test_plan_case_id). test_case_executions_002 already anchors plan_case 3,
+  # so this legacy second execution for the same plan case must leave the
+  # plan_case anchor nil.
+  test_plan_case_id:
+  test_case_id: 3
+  project_id: 3
+test_case_executions_004:
+  id: 4
+  status_id: 3
+  comment: Comment 4
+  executor_id: 3
+  execution_date: 2022-02-10 00:00:00 +09:00
+  test_plan_id: 4
+  test_plan_case_id: 4
+  test_case_id: 4
+  project_id: 5
+test_case_executions_005:
+  id: 5
+  status_id: 3
+  comment: Comment 1
+  executor_id: 2
+  defect_issue_id: 1
+  execution_date: 2022-02-10 00:00:00 +09:00
+  test_plan_id: 5
+  test_plan_case_id: 5
+  test_case_id: 5
+  project_id: 1
+test_case_executions_006:
+  id: 6
+  status_id: 3
+  comment: Comment 2
+  executor_id: 2
+  execution_date: 2022-02-10 00:00:00 +09:00
+  test_plan_id: 5
+  test_plan_case_id: 6
+  test_case_id: 6
+  project_id: 1
+test_case_executions_007:
+  id: 7
+  status_id: 4
+  comment: Comment 3
+  executor_id: 2
+  defect_issue_id: 1
+  execution_date: 2022-02-10 00:00:00 +09:00
+  test_plan_id: 5
+  test_plan_case_id: 7
+  test_case_id: 7
+  project_id: 1

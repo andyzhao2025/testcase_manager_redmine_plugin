@@ -1,0 +1,23 @@
+<h3><%= l(:label_testcase_management) %></h3>
+
+<ul>
+  <li><%= link_to l(:label_test_cases), project_test_cases_path %></li>
+  <li><%= link_to l(:label_test_plans), project_test_plans_path %></li>
+  <li><%= link_to l(:label_test_case_executions),
+                  project_test_case_executions_path %></li>
+</ul>
+
+<h3><%= l(:label_statistics) %></h3>
+
+<ul>
+  <li><%= link_to l(:label_test_plan_statistics), project_test_plan_statistics_path, class: 'icon icon-stats' %></li>
+  <li><%= link_to l(:label_test_case_statistics), project_test_case_statistics_path, class: 'icon icon-stats' %></li>
+</ul>
+
+<%= call_hook(:view_test_case_executions_sidebar_bottom) %>
+
+<% if controller.action_name == "index" %>
+  <%= render_sidebar_queries(TestCaseExecutionQuery, @project) %>
+  <%= call_hook(:view_test_case_executions_sidebar_queries_bottom) %>
+<% end %>
+

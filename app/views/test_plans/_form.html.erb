@@ -1,0 +1,43 @@
+<div class="box tabular">
+  <p><%= form.label :test_plan_name %>
+    <%= form.text_field :name, size: 80, required: true, id: 'name' %></p>
+  <p>
+    <%= form.label :begin_date %>
+    <%= form.date_field :begin_date, id: 'begin_date' %></p>
+  <p>
+    <%= form.label :end_date %>
+    <%= form.date_field :end_date, id: 'end_date' %></p>
+  <p>
+    <%= form.label :user %>
+    <% if @test_plan and @test_plan.user %>
+      <%= form.select :user, @user_candidates, selected: @test_plan.user.id %>
+    <% else %>
+    <%= form.select :user, @user_candidates %>
+    <% end %>
+  </p>
+  <p>
+    <%= form.label :estimated_bug %>
+    <%= form.number_field :estimated_bug, in: 0..9999, id: 'estimated_bug' %></p>
+  <p>
+    <%= form.label :plan_state %>
+    <%= form.select :plan_state, [
+          [l(:label_plan_state_draft), 'draft'],
+          [l(:label_plan_state_ready), 'ready'],
+          [l(:label_plan_state_running), 'running'],
+          [l(:label_plan_state_closed), 'closed'],
+          [l(:label_plan_state_archived), 'archived']
+        ], include_blank: true %>
+  </p>
+  <% if @test_plan && @test_plan.id %>
+  <p>
+    <%= form.label :source_plan %>
+    <%= form.select :source_plan_id,
+                    (@source_plans || []).map { |p| ["##{p.id} #{p.name}", p.id] },
+                    include_blank: true %>
+  </p>
+  <% end %>
+  <p>
+    <%= form.label :notes %>
+    <%= form.text_area :notes, cols: 60, rows: 4, id: 'notes' %>
+  </p>
+</div>

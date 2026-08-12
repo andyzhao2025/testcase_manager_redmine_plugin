@@ -1,0 +1,51 @@
+<p>
+  <label for="import_mapping_project_id"><%= l(:label_project) %></label>
+  <%= select_tag 'import_settings[mapping][project_id]',
+        options_for_select(project_tree_options_for_select(@import.allowed_target_projects, :selected => @import.project)),
+        :id => 'import_mapping_project_id' %>
+</p>
+<p>
+  <label for="import_mapping_test_case_id"><%= l(:field_test_case_id) %></label>
+  <%= mapping_select_tag @import, 'test_case_id', :required => false %>
+  <span class="icon icon-help"><%= l(:notice_import_tc_test_case_id) %></span><br>
+  <span class="icon icon-warning"><%= l(:notice_import_tc_test_case_id_warning) %></span>
+</p>
+<p>
+  <label for="import_mapping_test_plan"><%= l(:field_test_plan) %></label>
+  <%= mapping_select_tag @import, 'test_plan', :required => false %>
+  <span class="icon icon-help"><%= l(:notice_import_tc_test_plan) %></span>
+</p>
+<p>
+  <label for="import_mapping_test_case"><%= l(:field_test_case) %></label>
+  <%= mapping_select_tag @import, 'test_case', :required => true %>
+  <span class="icon icon-help"><%= l(:notice_import_tc_test_case) %></span>
+</p>
+<p>
+  <label for="import_mapping_test_case_update"><%= l(:field_test_case_update) %></label>
+  <%= check_box_tag("import_settings[mapping][test_case_update]", 1, false, id: 'import_mapping_test_case_update') %>
+  <span class="icon icon-help"><%= l(:notice_import_tc_test_case_update) %></span>
+</p>
+<p>
+  <label for="import_mapping_user"><%= l(:field_user) %></label>
+  <%= mapping_select_tag @import, 'user' %>
+</p>
+<p>
+  <label for="import_mapping_environment"><%= l(:field_environment) %></label>
+  <%= mapping_select_tag @import, 'environment', :required => true %>
+</p>
+<p>
+  <label for="import_mapping_scenario"><%= l(:field_scenario) %></label>
+  <%= mapping_select_tag @import, 'scenario', :required => true %>
+</p>
+<p>
+  <label for="import_mapping_expected"><%= l(:field_expected) %></label>
+  <%= mapping_select_tag @import, 'expected', :required => true %>
+</p>
+<p>
+  <label for="import_mapping_case_state"><%= l(:field_case_state) %></label>
+  <%= mapping_select_tag @import, 'case_state' %>
+</p>
+<p>
+  <label for="import_mapping_priority"><%= l(:field_priority) %></label>
+  <%= mapping_select_tag @import, 'priority' %>
+</p>

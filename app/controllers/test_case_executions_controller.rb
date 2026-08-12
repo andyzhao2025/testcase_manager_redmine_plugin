@@ -1,0 +1,459 @@
+class TestCaseExecutionsController < ApplicationController
+
+  include ApplicationsHelper
+
+  before_action :find_project_id
+  before_action :find_test_plan_id, :except => [:index, :show, :edit, :update, :bulk_edit, :bulk_update, :bulk_delete, :list_context_menu, :update_status]
+  before_action :find_test_plan_id_if_given, :only => [:index, :show, :edit, :update]
+  before_action :find_test_case_id, :only => [:show, :new, :create, :edit, :update, :destroy]
+  before_action :find_test_case_id_if_given, :only => [:index]
+  before_action :find_test_case_execution, :except => [:index, :new, :create, :bulk_edit, :bulk_update, :bulk_delete, :list_context_menu]
+  before_action :find_test_case_executions, :only => [:bulk_edit, :bulk_update, :bulk_delete, :list_context_menu]
+  before_action :authorize_with_issues_permission
+
+  before_action do
+    prepare_user_candidates
+  end
+
+  helper :attachments
+  helper :queries
+  include QueriesHelper
+  helper :test_case_executions_queries
+  include TestCaseExecutionsQueriesHelper
+  helper :context_menus
+
+  # GET /projects/:project_id/test_case_executions
+  # GET /projects/:project_id/test_cases/:test_case_id/test_case_executions
+  # GET /projects/:project_id/test_plans/:test_plan_id/test_case_executions
+  # GET /projects/:project_id/test_plans/:test_plan_id/test_cases/:test_case_id:/test_case_executions
+  def index
+    retrieve_query(TestCaseExecutionQuery, false)
+
+    @toplevel_test_case_execution = toplevel_test_case_execution?
+    if @query.valid?
+      @test_case_executions_export_limit = Setting.plugin_testcase_management["test_case_executions_export_limit"].to_i
+      respond_to do |format|
+        format.html do
+          @test_case_execution_count = @query.test_case_execution_count
+          @test_case_execution_pages = Paginator.new @test_case_execution_count, per_page_option, params['page']
+          test_case_executions_params = {offset: @test_case_execution_pages.offset,
+                                         limit: @test_case_execution_pages.per_page}
+          if params[:test_plan_id].present?
+            test_case_executions_params[:test_plan_id] = params[:test_plan_id]
+          end
+          if params[:test_case_id].present?
+            test_case_executions_params[:test_case_id] = params[:test_case_id]
+          end
+          @test_case_executions = @query.test_case_executions(test_case_executions_params).visible
+          if @test_plan and @test_case
+            @title = html_title(l(:label_test_case_executions),
+                                "##{@test_case.id} #{@test_case.name}",
+                                l(:label_test_cases),
+                                "##{@test_plan.id} #{@test_plan.name}",
+                                l(:label_test_plans))
+          elsif @test_plan
+            @title = html_title(l(:label_test_case_executions),
+                                "##{@test_plan.id} #{@test_plan.name}",
+                                l(:label_test_plans))
+          elsif @test_case
+            @title = html_title(l(:label_test_case_executions),
+                                "##{@test_case.id} #{@test_case.name}",
+                                l(:label_test_cases))
+          else
+            @title = html_title(l(:label_test_case_executions))
+          end
+          @csv_url = project_test_case_executions_path(@project, test_case_executions_params.merge(format: "csv"))
+        end
+        format.csv do
+          test_case_executions_params = {limit: @test_case_executions_export_limit}
+          if params[:test_plan_id].present?
+            test_case_executions_params[:test_plan_id] = params[:test_plan_id]
+          end
+          if params[:test_case_id].present?
+            test_case_executions_params[:test_case_id] = params[:test_case_id]
+          end
+          @test_case_executions = @query.test_case_executions(test_case_executions_params).visible
+          send_data(query_to_csv(@test_case_executions, @query, params[:csv]),
+                    :type => 'text/csv; header=present', :filename => 'test_case_executions.csv')
+        end
+      end
+    else
+      flash.now[:error] = l(:error_index_failure)
+      render 'forbidden', status: :unprocessable_entity
+    end
+  end
+
+  # GET /projects/:project_id/test_plans/:test_plan_id/test_cases/:test_case_id:/test_case_executions/new
+  def new
+    @test_case_execution = TestCaseExecution.new
+    @title = html_title(l(:label_test_case_execution_new),
+                        "##{@test_case.id} #{@test_case.name}",
+                        l(:label_test_cases),
+                        "##{@test_plan.id} #{@test_plan.name}",
+                        l(:label_test_plans))
+    # FIXME:
+    # @test_plan = @test_case_execution.test_plan
+    # @test_case = @test_case_execution.test_case
+    set_issue_template_uri
+  end
+
+  # POST /projects/:project_id/test_plans/:test_plan_id/test_cases/:test_case_id:/test_case_executions
+  def create
+    begin
+      create_params = {
+        status: TestExecutionStatus.find(test_case_execution_params[:status_id]),
+        executor: User.find(test_case_execution_params[:executor_id]),
+        comment: test_case_execution_params[:comment],
+        execution_date: test_case_execution_params[:execution_date],
+        test_plan: @test_plan,
+        test_case: @test_case,
+        project: @project,
+      }
+      if test_case_execution_params[:test_plan_case_id].present?
+        create_params[:test_plan_case_id] = test_case_execution_params[:test_plan_case_id]
+      end
+      if test_case_execution_params[:defect_issue_id].present?
+        issue = Issue.find_by(id: test_case_execution_params[:defect_issue_id])
+        create_params[:defect_issue] = issue if issue && issue.project_id == @project.id
+      end
+      create_params[:automation_source] = test_case_execution_params[:automation_source] if test_case_execution_params[:automation_source].present?
+      create_params[:external_run_id] = test_case_execution_params[:external_run_id] if test_case_execution_params[:external_run_id].present?
+      create_params[:build_url] = test_case_execution_params[:build_url] if test_case_execution_params[:build_url].present?
+      create_params[:duration_seconds] = test_case_execution_params[:duration_seconds] if test_case_execution_params[:duration_seconds].present?
+      @test_case_execution = TestCaseExecution.new(create_params)
+      if params[:attachments].present?
+        @test_case_execution.save_attachments params.require(:attachments).permit!
+      end
+      if @test_case_execution.valid?
+        @test_case_execution.save
+        flash[:notice] = l(:notice_successful_create)
+        redirect_to project_test_plan_path(id: @test_plan.id)
+      else
+        render :new, status: :unprocessable_entity
+      end
+    rescue
+      render 'forbidden', status: :unprocessable_entity
+    end
+  end
+
+  # GET /projects/:project_id/test_plans/:test_plan_id/test_cases/:test_case_id:/test_case_executions/:id
+  def show
+    @title = html_title("#{l(:label_test_case_executions)} ##{@test_case_execution.id}",
+                        "##{@test_case.id} #{@test_case.name}",
+                        l(:label_test_cases),
+                        "##{@test_plan.id} #{@test_plan.name}",
+                        l(:label_test_plans))
+  end
+
+  # GET /projects/:project_id/test_case_executions/:id/edit
+  # GET /projects/:project_id/test_cases/:test_case_id:/test_case_executions/:id/edit
+  # GET /projects/:project_id/test_plans/:test_plan_id/test_cases/:test_case_id:/test_case_executions/:id/edit
+  def edit
+    @title = html_title("#{l(:label_test_case_execution_edit)} ##{@test_case_execution.id}",
+                        "##{@test_case.id} #{@test_case.name}",
+                        l(:label_test_cases),
+                        "##{@test_plan.id} #{@test_plan.name}",
+                        l(:label_test_plans))
+    set_issue_template_uri
+  end
+
+  # PUT /projects/:project_id/test_case_executions/:id
+  # PUT /projects/:project_id/test_cases/:test_case_id:/test_case_executions/:id
+  # PUT /projects/:project_id/test_plans/:test_plan_id/test_cases/:test_case_id:/test_case_executions/:id
+  def update
+    begin
+      raise ::Unauthorized unless @test_case_execution.editable?
+      @test_case_execution.execution_date = test_case_execution_params[:execution_date]
+      if test_case_execution_params[:status_id].present?
+        status = TestExecutionStatus.find(test_case_execution_params[:status_id])
+        @test_case_execution.status = status if status
+      end
+      @test_case_execution.comment = test_case_execution_params[:comment]
+      executor = User.find_by(id: test_case_execution_params[:executor_id])
+      @test_case_execution.executor = executor if executor
+      if test_case_execution_params[:test_plan_case_id].present?
+        @test_case_execution.test_plan_case_id = test_case_execution_params[:test_plan_case_id]
+      end
+      if test_case_execution_params[:defect_issue_id].present?
+        issue = Issue.find_by(id: test_case_execution_params[:defect_issue_id])
+        @test_case_execution.defect_issue = issue if issue && issue.project_id == @project.id
+      else
+        @test_case_execution.defect_issue = nil
+      end
+      if test_case_execution_params[:automation_source].present?
+        @test_case_execution.automation_source = test_case_execution_params[:automation_source]
+      end
+      @test_case_execution.external_run_id = test_case_execution_params[:external_run_id] if test_case_execution_params[:external_run_id].present?
+      @test_case_execution.build_url = test_case_execution_params[:build_url] if test_case_execution_params[:build_url].present?
+      @test_case_execution.duration_seconds = test_case_execution_params[:duration_seconds] if test_case_execution_params[:duration_seconds].present?
+      if params[:attachments].present?
+        @test_case_execution.save_attachments params.require(:attachments).permit!
+      end
+      if @test_case_execution.save
+        render_attachment_warning_if_needed @test_case_execution
+        flash[:notice] = l(:notice_successful_update)
+        if @test_plan_given
+          redirect_to project_test_plan_path(test_plan_id: @test_plan.id, id: @test_plan.id)
+        else
+          redirect_to project_test_case_path(id: @test_case.id)
+        end
+      else
+        flash.now[:error] = l(:error_update_failure)
+        render :edit, status: :unprocessable_entity
+      end
+    rescue ::Unauthorized
+    rescue
+      flash.now[:error] = l(:error_test_case_execution_not_found)
+      render 'forbidden', status: 404
+    end
+  end
+
+  # DELETE /projects/:project_id/test_case_executions/:id
+  # DELETE /projects/:project_id/test_cases/:test_case_id:/test_case_executions/:id
+  # DELETE /projects/:project_id/test_plans/:test_plan_id/test_cases/:test_case_id:/test_case_executions/:id
+  def destroy
+    begin
+      raise ::Unauthorized unless @test_case_execution.deletable?
+      if @test_case_execution.destroy
+        flash[:notice] = l(:notice_successful_delete)
+        redirect_to project_test_plan_test_case_test_case_executions_path
+      else
+        flash.now[:error] = l(:error_delete_failure)
+        render :show
+      end
+    rescue ::Unauthorized
+    rescue
+      flash.now[:error] = l(:error_test_case_execution_not_found)
+      render 'forbidden', status: 404
+    end
+  end
+
+  # POST /projects/:project_id/test_plans/:id/test_plan_cases/:test_plan_case_id/status
+  # Quick status U-turn from the plan dashboard. Creates or updates the single
+  # execution record for the plan-case. No issue-page round-trip required.
+  def update_status
+    test_plan_id = params[:test_plan_id].presence || params[:id]
+    plan_case = TestPlanCase.find(params[:test_plan_case_id])
+    raise ActiveRecord::RecordNotFound unless plan_case.test_plan_id == test_plan_id.to_i
+    raise ::Unauthorized unless plan_case.test_plan.visible?
+    raise ::Unauthorized unless User.current.allowed_to?(:edit_test_case_executions, @project)
+
+    status = TestExecutionStatus.find_by(id: params[:status_id]) ||
+             TestExecutionStatus.canonical('not_run')
+
+    execution = plan_case.test_case_execution || TestCaseExecution.new(
+      test_plan: plan_case.test_plan,
+      test_plan_case: plan_case,
+      test_case: plan_case.test_case,
+      project: @project
+    )
+    execution.status = status
+    execution.executor = User.current if execution.new_record? || execution.executor.nil?
+    execution.execution_date ||= Time.now
+
+    if execution.save
+      respond_to do |format|
+        format.html { redirect_to project_test_plan_path(id: plan_case.test_plan_id) }
+        format.json { render json: { ok: true, status: status.key, status_name: status.name } }
+      end
+    else
+      respond_to do |format|
+        format.html { redirect_to project_test_plan_path(id: plan_case.test_plan_id), notice: execution.errors.full_messages.join(', ') }
+        format.json { render json: { ok: false, errors: execution.errors.full_messages }, status: :unprocessable_entity }
+      end
+    end
+  end
+
+  # GET /projects/:project_id/test_case_executions/context_menu
+  def list_context_menu
+    if @test_case_executions.size == 1
+      @test_case_execution = @test_case_executions.first
+    end
+    @test_case_execution_ids = @test_case_executions.map(&:id).sort
+
+    edit_allowed = @test_case_executions.all? {|t| t.editable?(User.current)}
+    @can = {:edit => edit_allowed, :delete => edit_allowed}
+    @back = back_url
+
+    @safe_attributes = @test_case_executions.map(&:safe_attribute_names).reduce(:&)
+    @assignables = @project.users
+    render :layout => false
+  end
+
+  def bulk_edit
+    @assignables = @project.users
+    @safe_attributes = @test_case_executions.map(&:safe_attribute_names).reduce(:&)
+    @test_case_execution_params = params[:test_case_execution] || {}
+    @back_url = params[:back_url]
+  end
+
+  def bulk_update
+    attributes = parse_params_for_bulk_update(params[:test_case_execution])
+
+    unsaved_test_case_executions = []
+    saved_test_case_executions = []
+
+    @test_case_executions.each do |orig_test_case_execution|
+      orig_test_case_execution.reload
+      test_case_execution = orig_test_case_execution
+      test_case_execution.safe_attributes = attributes
+      if test_case_execution.save
+        saved_test_case_executions << test_case_execution
+      else
+        unsaved_test_case_executions << orig_test_case_execution
+      end
+    end
+
+    if unsaved_test_case_executions.empty?
+      flash[:notice] = l(:notice_successful_update) unless saved_test_case_executions.empty?
+      redirect_to params[:back_url]
+    else
+      @saved_test_case_executions = saved_test_case_executions
+      @unsaved_test_case_executions = unsaved_test_case_executions
+      @test_case_executions = TestCaseExecution.where(id: @unsaved_test_case_executions.map(&:id)).to_a
+      bulk_edit
+      render :action => 'bulk_edit'
+    end
+  end
+
+  # DELETE /projects/:project_id/test_plans/bulk_delete
+  def bulk_delete
+    @test_case_execution_params = params[:test_case_execution] || {}
+
+    delete_allowed = @test_case_executions.all? { |t| t.deletable?(User.current) }
+    if delete_allowed
+      @test_case_executions.destroy_all
+      flash[:notice] = l(:notice_successful_delete)
+    else
+      flash[:notice] = l(:error_delete_failure)
+    end
+    redirect_to params[:back_url]
+  end
+
+  private
+
+  def toplevel_test_case_execution?
+    params[:test_plan_id].nil? and
+      params[:test_case_id].nil?
+  end
+
+  def find_test_case_execution
+    find_params = {
+      project_id: @project.id,
+      id: params.permit(:id)[:id],
+    }
+    find_params[:test_plan_id] = @test_plan.id if @test_plan_given
+    find_params[:test_case_id] = @test_case.id if @test_case_given
+    @test_case_execution = TestCaseExecution.joins(:test_case).find_by(find_params)
+    unless @test_case_execution
+      flash[:error] = l(:error_test_case_execution_not_found)
+      render 'forbidden', status: 404
+      false
+    else
+      true
+    end
+  end
+
+  def permit_param(symbol)
+    params.permit(symbol)[symbol]
+  end
+
+  def set_issue_template_uri
+    @issue_template_uri = new_project_issue_path(@project) + "?"
+    case Setting.text_formatting
+    when "markdown"
+      description =<<-EOS
+# #{@test_plan.name} #{@test_case.name}
+
+[#{@test_case.name}](#{project_test_plan_test_case_url(id: @test_case.id)})
+EOS
+      if @test_case_execution.id
+        description +=<<EOS
+[#{l(:label_test_case_executions)}](#{project_test_plan_test_case_test_case_execution_url(id: @test_case_execution.id)})
+
+EOS
+      end
+      description +=<<-EOS
+## #{l(:field_environment)}
+
+#{@test_case.environment}
+
+## #{l(:field_scenario)}
+
+#{@test_case.scenario}
+
+## #{l(:field_expected)}
+
+#{@test_case.expected}
+
+## #{l(:field_comment)}
+
+#{@test_case_execution.comment}
+EOS
+    else
+      description =<<-EOS
+h1. #{@test_plan.name} #{@test_case.name}
+
+"#{@test_case.name}":#{project_test_plan_test_case_url(id: @test_case.id)}
+EOS
+      if @test_case_execution.id
+        description +=<<EOS
+"#{l(:label_test_case_executions)}":#{project_test_plan_test_case_test_case_execution_url(id: @test_case_execution.id)}
+EOS
+      end
+      description +=<<-EOS
+
+h2. #{l(:field_environment)}
+
+#{@test_case.environment}
+
+h2. #{l(:field_scenario)}
+
+#{@test_case.scenario}
+
+h2. #{l(:field_expected)}
+
+#{@test_case.expected}
+
+h2. #{l(:field_comment)}
+
+#{@test_case_execution.comment}
+EOS
+    end
+    values = [["issue[assigned_to_id]", @test_case_execution.executor ? @test_case_execution.executor.id : User.current.id ],
+              ["issue[subject]", "#{@test_plan.name} #{@test_case.name}"],
+              ["issue[description]", description]]
+    @issue_template_uri << URI.encode_www_form(values)
+  end
+
+  def test_case_execution_params
+    params.require(:test_case_execution).permit(:project_id,
+                                                :test_plan_id,
+                                                :test_plan_case_id,
+                                                :test_case_id,
+                                                :executor_id,
+                                                :status_id,
+                                                :execution_date,
+                                                :comment,
+                                                :defect_issue_id,
+                                                :automation_source,
+                                                :external_run_id,
+                                                :build_url,
+                                                :duration_seconds)
+  end
+
+  def csv_value(column, test_case, value)
+    case column.name
+    when :test_plan, :test_case
+      value.name
+    when :status
+      value ? value.name : l(:label_none)
+    when :executor
+      value ? value.name : l(:label_none)
+    when :defect_issue
+      value ? (value.respond_to?(:name) ? value.name : value) : l(:label_none)
+    else
+      super
+    end
+  end
+end

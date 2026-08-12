@@ -1,0 +1,54 @@
+<h2 class="inline-flex"><%= breadcrumb %><%=l(:label_test_plan_statistics)%></h2>
+
+<% if @test_plans.empty? %>
+  <p class="nodata"><%= l(:nodata) %></p>
+<% else %>
+  <div class="autoscroll">
+    <table id="statistics" class="list issues odd-even sort-by-id sort-desc">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th><%=l(:field_test_plan)%></th>
+          <th><%=l(:field_user)%></th>
+          <th><%=l(:field_count_test_cases)%></th>
+          <th><%=l(:field_status_not_run)%></th>
+          <th><%=l(:field_status_passed)%></th>
+          <th><%=l(:field_status_failed)%></th>
+          <th><%=l(:field_status_in_progress)%></th>
+          <th><%=l(:field_status_on_hold)%></th>
+          <th><%=l(:field_status_not_applicable)%></th>
+          <th><%=l(:field_progress_rate)%></th>
+          <th><%=l(:field_estimated_bug)%></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @test_plans.each do |plan| %>
+        <tr>
+          <td class="id"><%= link_to plan[:id], "/projects/#{@project.identifier}/test_plans/#{plan[:id]}" %></td>
+          <td class="name"><%= link_to plan[:name], "/projects/#{@project.identifier}/test_plans/#{plan[:id]}" %></td>
+          <td class="user"><%= link_to User.find(plan[:user_id]).name, "/users/#{plan[:user_id]}" rescue l(:label_none) %></td>
+          <td class="test_cases"><%= plan[:count_cases] %></td>
+          <td class="count_not_executed"><%= plan[:count_not_executed] %></td>
+          <td class="count_passed"><%= plan[:count_passed] %></td>
+          <td class="count_failed"><%= plan[:count_failed] %></td>
+          <td class="count_in_progress"><%= plan[:count_in_progress] %></td>
+          <td class="count_on_hold"><%= plan[:count_on_hold] %></td>
+          <td class="count_not_applicable"><%= plan[:count_not_applicable] %></td>
+          <td class="progress_rate">
+            <% if plan[:count_cases] > 0 %>
+              <%= (((plan[:count_passed] + plan[:count_failed]) / plan[:count_cases].to_f) * 100).round %>%
+            <% else %>
+              -
+            <% end %>
+          </td>
+          <td class="estimated_bug"><%= plan[:estimated_bug] %></td>
+        </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+<% end %>
+
+<% content_for :sidebar do %>
+  <%= render :partial => 'test_plans/sidebar' %>
+<% end %>

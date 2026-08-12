@@ -1,0 +1,67 @@
+---
+# Canonical system execution statuses, mirroring the seed inserted by
+# db/migrate/20230101000001_create_test_execution_statuses.rb. The test DB is
+# rebuilt from schema (db:test:load / test:prepare) which does NOT re-run the
+# migration's seed INSERTs, so these rows would otherwise be absent and every
+# fixture/record referencing status_id (or `status:`) would fail with
+# "Status cannot be blank". ids 1-6 match the canonical seed order.
+not_run:
+  id: 1
+  project_id:
+  key: not_run
+  name: Not run
+  category: pending
+  position: 1
+  color: '#999999'
+  is_default: true
+  is_final: false
+in_progress:
+  id: 2
+  project_id:
+  key: in_progress
+  name: In Progress
+  category: running
+  position: 2
+  color: '#5cc2e2'
+  is_default: false
+  is_final: false
+passed:
+  id: 3
+  project_id:
+  key: passed
+  name: Passed
+  category: passed
+  position: 3
+  color: '#00aa33'
+  is_default: false
+  is_final: true
+failed:
+  id: 4
+  project_id:
+  key: failed
+  name: Failed
+  category: failed
+  position: 4
+  color: '#dd0000'
+  is_default: false
+  is_final: true
+on_hold:
+  id: 5
+  project_id:
+  key: on_hold
+  name: On hold
+  category: blocked
+  position: 5
+  color: '#ff9900'
+  is_default: false
+  is_final: false
+not_applicable:
+  id: 6
+  project_id:
+  key: not_applicable
+  name: N/A
+  category: skipped
+  position: 6
+  color: '#888888'
+  is_default: false
+  is_final: true

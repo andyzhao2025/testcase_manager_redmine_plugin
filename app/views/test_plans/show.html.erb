@@ -1,0 +1,239 @@
+<%= render :partial => 'action_menu', :locals => {:project_id => @project.name } %>
+
+<h2 class="inline-flex"><%= breadcrumb %>#<%= @test_plan.id %> <%= @test_plan.name %></h2>
+
+<div class="issue details">
+  <div class="subject">
+    <div>
+      <h3><%= @test_plan.name %></h3>
+    </div>
+  </div>
+  <div class="attributes">
+    <div class="splitcontent">
+      <div class="splitcontentleft">
+        <div class="status attribute">
+          <div class="label"><%=l(:field_plan_state)%></div>
+          <div id="plan_state" class="value">
+            <%= @test_plan.plan_state ? l("label_plan_state_#{@test_plan.plan_state}", default: @test_plan.plan_state) : l(:label_none) %>
+          </div>
+        </div>
+        <div class="estimated-bug attribute">
+          <div class="label"><%=l(:field_estimated_bug)%></div>
+          <div id="estimated_bug" class="value"><%= @test_plan.estimated_bug %></div>
+        </div>
+        <div class="assigned-to attribute">
+          <div class="label"><%=l(:field_user)%></div>
+          <div id="user" class="value"><%= @test_plan.user.name if @test_plan.user %></div>
+        </div>
+        <% if @test_plan.source_plan %>
+          <div class="source attribute">
+            <div class="label"><%=l(:field_source_plan)%></div>
+            <div id="source_plan" class="value">
+              <%= link_to "##{@test_plan.source_plan.id} #{@test_plan.source_plan.name}",
+                          project_test_plan_path(id: @test_plan.source_plan.id) %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+      <div class="splitcontentleft">
+        <div class="start-date attribute">
+          <div class="label"><%=l(:field_begin_date)%></div>
+          <div id="begin_date" class="value"><%= yyyymmdd_date(@test_plan.begin_date) %></div>
+        </div>
+        <div class="end-date attribute">
+          <div class="label"><%=l(:field_end_date)%></div>
+          <div id="end_date" class="value"><%= yyyymmdd_date(@test_plan.end_date) %></div>
+        </div>
+      </div>
+    </div>
+    <% if @test_plan.notes.present? %>
+      <div class="notes attribute">
+        <div class="label"><%=l(:field_notes)%></div>
+        <div id="notes" class="value wiki"><%= textilizable(@test_plan.notes) %></div>
+      </div>
+    <% end %>
+  </div>
+
+  <div id="test_case_tree">
+    <div class="contextual">
+      <%= link_to l(:label_test_case_new), new_project_test_plan_test_case_path(test_plan_id: @test_plan.id), class: 'icon icon-add' %>
+      <%= link_to l(:button_copy), copy_project_test_plan_path(@test_plan), method: :post, class: 'icon icon-copy' %>
+    </div>
+  </div>
+</div>
+
+<!-- Summary statistics -->
+<div class="summary box">
+  <p><strong><%=l(:label_execution_summary)%></strong></p>
+  <div class="progress-container">
+    <div class="progress"><span class="progress-value" style="width: <%= @progress %>%"></span></div>
+    <p class="progress-percent"><%= @progress %>%</p>
+  </div>
+  <table class="list summary-table">
+    <tbody>
+      <tr>
+        <td><span class="status-label"><%=l(:label_status_not_run)%></span></td>
+        <% TestExecutionStatus.system.ordered.each do |status| %>
+          <td>
+            <span class="status <%= status.key %>"><%= status.name %>: <%= @status_summary[status.key] %></span>
+          </td>
+        <% end %>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- Ordered cases with per-row quick status -->
+<div id="related_cases" class="box">
+  <p><strong><%=l(:label_related_test_cases)%> (<%= @test_plan_cases.size %>)</strong></p>
+  <% if @test_plan_cases.empty? %>
+    <p class="nodata"><%= l(:label_no_data) %></p>
+  <% else %>
+    <%= form_tag({}, :data => {:cm_url => "/projects/#{@project.identifier}/test_plans/#{@test_plan.id}/context_menu"}) do -%>
+      <%= hidden_field_tag 'back_url', url_for(:params => request.query_parameters), :id => nil %>
+      <div class="autoscroll">
+        <table id="plan_cases" class="list test_case odd-even">
+          <thead>
+            <tr>
+              <th class="checkbox hide-when-print"></th>
+              <th><%=l(:field_position)%></th>
+              <th><%=l(:field_test_case)%></th>
+              <th><%=l(:field_environment)%></th>
+              <th><%=l(:field_status)%></th>
+              <th class="quick-status"><%=l(:label_quick_status)%></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @test_plan_cases.each do |tpc| %>
+              <tr id="plan-case-<%= tpc.id %>" class="plan-case <%= cycle('odd', 'even') %>" data-id="<%= tpc.id %>">
+                <td class="checkbox hide-when-print"></td>
+                <td class="position"><%= tpc.position %></td>
+                <td>
+                  <% if @test_plan.editable?(User.current) %>
+                    <span class="reorder move-up icon icon-sort-higher" data-id="<%= tpc.id %>" title="<%=l(:button_move_up)%>"></span>
+                    <span class="reorder move-down icon icon-sort-lower" data-id="<%= tpc.id %>" title="<%=l(:button_move_down)%>"></span>
+                  <% end %>
+                  <%= link_to tpc.display_name,
+                              project_test_plan_test_case_path(project_id: @project, test_plan_id: @test_plan.id, id: tpc.test_case_id) %>
+                </td>
+                <td class="environment"><%= tpc.display_environment %></td>
+                <td>
+                  <% status = tpc.execution_status %>
+                  <span class="status <%= status ? status.key : 'not_run' %>"><%= status ? status.name : l(:label_status_not_run) %></span>
+                </td>
+                <td class="quick-status">
+                  <% if @test_plan.editable?(User.current) || User.current.allowed_to?(:edit_test_case_executions, @project) %>
+                    <%= select_tag 'status',
+                          options_for_select(@statuses.map { |s| [s.name, s.id] }, tpc.test_case_execution&.status_id),
+                          data: { url: project_test_plan_test_plan_case_status_path(@project, @test_plan.id, tpc.id) },
+                          class: 'quick-status-select', prompt: tpc.test_case_execution&.status ? false : l(:label_status_not_run) %>
+                  <% else %>
+                    <%= l(:label_none) %>
+                  <% end %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    <% end -%>
+  <% end %>
+</div>
+
+<div id="relations">
+  <div class="contextual">
+    <%= toggle_link l(:label_added), 'assign-test-case-form', { focus: 'test_case_id' } %>
+  </div>
+  <p><strong><%=l(:label_added_test_case)%></strong></p>
+  <%= form_for @test_case_case_add, {
+      remote: false,
+      url: assign_test_case_project_test_plan_path(@project, @test_plan),
+      method: :post,
+      html: {id: 'assign-test-case-form', style: 'display: none;'}
+      } do |f| %>
+    <%= text_field_tag 'test_plan_case[test_case_id]', nil, id: 'test_case_id', placeholder: l(:test_case_assignment_tooltip) %>
+    <%= submit_tag l(:button_add) %>
+    <%= link_to l(:button_cancel), '#', id: 'cancel-assign' %>
+  <% end %>
+</div>
+
+<% content_for :sidebar do %>
+  <%= render :partial => 'test_plans/sidebar' %>
+<% end %>
+
+<%= context_menu %>
+
+<% content_for :header_tags do %>
+  <style>
+    .status { padding: 2px 8px; border-radius: 10px; color: #fff; display: inline-block; }
+    .status.not_run, .status-label { background-color: #999; }
+    .status.in_progress { background-color: #5cc2e2; }
+    .status.passed { background-color: #00aa33; }
+    .status.failed { background-color: #dd0000; }
+    .status.on_hold { background-color: #ff9900; }
+    .status.not_applicable { background-color: #888; }
+    .progress-container { width: 100%; }
+    .reorder-handle { cursor: move; }
+  </style>
+  <script>
+    (function () {
+      // Quick status update
+      document.querySelectorAll('select.quick-status-select').forEach(function (sel) {
+        sel.addEventListener('change', function () {
+          var url = sel.dataset.url;
+          var statusId = sel.value;
+          var form = document.createElement('form');
+          form.method = 'POST';
+          form.action = url;
+          var input = document.createElement('input');
+          input.type = 'hidden'; input.name = 'status_id'; input.value = statusId;
+          form.appendChild(input);
+          document.body.appendChild(form);
+          form.submit();
+        });
+      });
+      // Reorder via move up/down
+      function currentOrder() {
+        return Array.prototype.map.call(
+          document.querySelectorAll('#plan_cases tbody tr.plan-case'),
+          function (tr) { return tr.dataset.id; }
+        );
+      }
+      function postReorder(order) {
+        var url = <%= "'#{reorder_project_test_plan_path(@project, @test_plan)}'".html_safe %>;
+        var form = document.createElement('form');
+        form.method = 'POST';
+        form.action = url;
+        order.forEach(function (id) {
+          var input = document.createElement('input');
+          input.type = 'hidden'; input.name = 'test_plan_case_ids[]'; input.value = id;
+          form.appendChild(input);
+        });
+        document.body.appendChild(form);
+        form.submit();
+      }
+      document.querySelectorAll('.reorder.move-up, .reorder.move-down').forEach(function (el) {
+        el.addEventListener('click', function () {
+          var id = el.dataset.id;
+          var rows = currentOrder();
+          var idx = rows.indexOf(id);
+          if (el.classList.contains('move-up') && idx > 0) {
+            rows.splice(idx, 1); rows.splice(idx - 1, 0, id);
+          } else if (el.classList.contains('move-down') && idx < rows.length - 1) {
+            rows.splice(idx, 1); rows.splice(idx + 1, 0, id);
+          } else {
+            return;
+          }
+          postReorder(rows);
+        });
+      });
+      var cancel = document.getElementById('cancel-assign');
+      if (cancel) {
+        cancel.addEventListener('click', function (e) {
+          e.preventDefault();
+          document.getElementById('assign-test-case-form').style.display = 'none';
+        });
+      }
+    })();
+  </script>
+<% end %>

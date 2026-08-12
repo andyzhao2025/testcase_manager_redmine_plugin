@@ -1,0 +1,144 @@
+--- 
+test_cases_001: 
+  id: 1
+  # project: projects_003
+  project_id: 3
+  # test_plan: test_plans_002
+  name: Test Case 1 (No test case execution)
+  scenario: Scenario 1
+  expected: Expected 1
+  environment: Debian GNU/Linux
+  user_id: 2
+  issue_status_id: 1
+test_cases_002:
+  id: 2
+  # project: projects_003
+  project_id: 3
+  # test_plan: test_plans_003
+  name: Test Case 2 (1 test case execution)
+  scenario: Scenario 2
+  expected: Expected 2
+  environment: Debian GNU/Linux
+  user_id: 2
+  issue_status_id: 1
+  #test_case_executions: test_case_executions_001
+test_cases_003:
+  id: 3
+  # project: projects_003
+  project_id: 3
+  # test_plan: test_plans_003
+  name: Test Case 3 (2 test case execution)
+  scenario: Scenario 3
+  expected: Expected 3
+  environment: Debian GNU/Linux
+  user_id: 2
+  issue_status_id: 1
+  #test_case_executions: test_case_executions_002, test_case_executions_003
+test_cases_004:
+  id: 4
+  # project: projects_005
+  project_id: 5
+  # test_plan: test_plans_004
+  name: Test Case 4
+  scenario: Scenario 4
+  expected: Expected 4
+  environment: Debian GNU/Linux
+  user_id: 3
+  issue_status_id: 1
+  #test_case_executions: test_case_executions_004
+test_cases_005: 
+  id: 5
+  # project: projects_001
+  project_id: 1
+  # test_plan: test_plans_005
+  name: Test Case 1 (No test case execution)
+  scenario: Scenario 1
+  expected: Expected 1
+  environment: Debian GNU/Linux
+  user_id: 2
+  issue_status_id: 1
+test_cases_006:
+  id: 6
+  # project: projects_001
+  project_id: 1
+  # test_plan: test_plans_005
+  name: Test Case 2 (1 test case execution)
+  scenario: Scenario 2
+  expected: Expected 2
+  environment: Debian GNU/Linux
+  user_id: 2
+  issue_status_id: 1
+test_cases_007:
+  id: 7
+  # project: projects_001
+  project_id: 1
+  # test_plan: test_plans_005
+  name: Test Case 3 (2 test case execution)
+  scenario: Scenario 3
+  expected: Expected 3
+  environment: Debian GNU/Linux
+  user_id: 2
+  issue_status_id: 1
+test_cases_101:
+  id: 101
+  # project: projects_001
+  project_id: 1
+  name: Test Case 101 (for import)
+  scenario: Scenario 101
+  expected: Expected 101
+  environment: Debian GNU/Linux
+  user_id: 1
+test_cases_102:
+  id: 102
+  # project: projects_001
+  project_id: 1
+  name: Test Case 102 (for import)
+  scenario: Scenario 102
+  expected: Expected 102
+  environment: Debian GNU/Linux
+  user_id: 1
+test_cases_103:
+  id: 103
+  # project: projects_001
+  project_id: 1
+  name: Test Case 103 (for import)
+  scenario: Scenario 103
+  expected: Expected 103
+  environment: Debian GNU/Linux
+  user_id: 1
+test_cases_104:
+  id: 104
+  # project: projects_001
+  project_id: 1
+  name: Test Case 104 (for import)
+  scenario: Scenario 104
+  expected: Expected 104
+  environment: Debian GNU/Linux
+  user_id: 1
+test_cases_105:
+  id: 105
+  # project: projects_001
+  project_id: 1
+  name: Test Case 105 (for import)
+  scenario: Scenario 105
+  expected: Expected 105
+  environment: Debian GNU/Linux
+  user_id: 1
+test_cases_106:
+  id: 106
+  # project: projects_001
+  project_id: 1
+  name: Test Case 106 (for import)
+  scenario: Scenario 106
+  expected: Expected 106
+  environment: Debian GNU/Linux
+  user_id: 1
+test_cases_107:
+  id: 107
+  # project: projects_001
+  project_id: 1
+  name: Test Case 107 (for import)
+  scenario: Scenario 107
+  expected: Expected 107
+  environment: Debian GNU/Linux
+  user_id: 1

@@ -1,0 +1,64 @@
+---
+test_plan_cases_001:
+  id: 1
+  test_plan_id: 2
+  test_case_id: 1
+  position: 1
+  name_snapshot: Test Case 1 (No test case execution)
+  scenario_snapshot: Scenario 1
+  expected_snapshot: Expected 1
+  environment_snapshot: Debian GNU/Linux
+test_plan_cases_002:
+  id: 2
+  test_plan_id: 3
+  test_case_id: 2
+  position: 1
+  name_snapshot: Test Case 2 (1 test case execution)
+  scenario_snapshot: Scenario 2
+  expected_snapshot: Expected 2
+  environment_snapshot: Debian GNU/Linux
+test_plan_cases_003:
+  id: 3
+  test_plan_id: 3
+  test_case_id: 3
+  position: 2
+  name_snapshot: Test Case 3 (2 test case execution)
+  scenario_snapshot: Scenario 3
+  expected_snapshot: Expected 3
+  environment_snapshot: Debian GNU/Linux
+test_plan_cases_004:
+  id: 4
+  test_plan_id: 4
+  test_case_id: 4
+  position: 1
+  name_snapshot: Test Case 4
+  scenario_snapshot: Scenario 4
+  expected_snapshot: Expected 4
+  environment_snapshot: Debian GNU/Linux
+test_plan_cases_005:
+  id: 5
+  test_plan_id: 5
+  test_case_id: 5
+  position: 1
+  name_snapshot: Test Case 1 (No test case execution)
+  scenario_snapshot: Scenario 1
+  expected_snapshot: Expected 1
+  environment_snapshot: Debian GNU/Linux
+test_plan_cases_006:
+  id: 6
+  test_plan_id: 5
+  test_case_id: 6
+  position: 2
+  name_snapshot: Test Case 2 (1 test case execution)
+  scenario_snapshot: Scenario 2
+  expected_snapshot: Expected 2
+  environment_snapshot: Debian GNU/Linux
+test_plan_cases_007:
+  id: 7
+  test_plan_id: 5
+  test_case_id: 7
+  position: 3
+  name_snapshot: Test Case 3 (2 test case execution)
+  scenario_snapshot: Scenario 3
+  expected_snapshot: Expected 3
+  environment_snapshot: Debian GNU/Linux

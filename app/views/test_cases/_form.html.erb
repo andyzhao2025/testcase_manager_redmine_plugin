@@ -1,0 +1,148 @@
+<div class="box tabular">
+  <% if @test_plan_given %>
+    <p>
+      <%= form.label :test_plan %>
+      <% if @test_plan %>
+        <%= @test_plan.name %>
+        <%= form.hidden_field :test_plan_id, :value => @test_plan.id %>
+      <% else %>
+        <%= form.select :test_plan_id, @test_plan_candidates %>
+      <% end %>
+    </p>
+  <% end %>
+  <p>
+    <%= form.label :test_case_name %>
+    <%= form.text_field :name, size: 80, required: true, id: "name" %>
+  </p>
+  <p>
+    <%= form.label :user %>
+    <% if @test_case and @test_case.user %>
+      <%= form.select :user, @user_candidates, selected: @test_case.user.id %>
+    <% else %>
+      <%= form.select :user, @user_candidates %>
+    <% end %>
+  </p>
+  <p>
+    <%= form.label :case_state %>
+    <%= form.select :case_state, [
+          [l(:label_case_state_draft), 'draft'],
+          [l(:label_case_state_active), 'active'],
+          [l(:label_case_state_deprecated), 'deprecated'],
+          [l(:label_case_state_archived), 'archived']
+        ], include_blank: true %>
+  </p>
+  <p>
+    <%= form.label :priority %>
+    <%= form.select :priority, [
+          [l(:label_priority_low), 'low'],
+          [l(:label_priority_normal), 'normal'],
+          [l(:label_priority_high), 'high'],
+          [l(:label_priority_urgent), 'urgent']
+        ], include_blank: true %>
+  </p>
+  <p>
+    <%= form.label :environment %>
+    <%= form.text_field :environment, size: 80, id: "environment" %>
+  </p>
+  <p>
+    <%= form.label :scenario %>
+    <%= form.text_area :scenario, required: true, id: "scenario", cols: 60, rows: [[10, @test_case.scenario.to_s.length / 50].max, 20].min %>
+  </p>
+  <p>
+    <%= form.label :expected %>
+    <%= form.text_area :expected, required: true, id: "expected", cols: 60, rows: [[10, @test_case.expected.to_s.length / 50].max, 20].min %>
+  </p>
+</div>
+
+<!-- Structured test steps -->
+<fieldset class="box">
+  <legend><%= l(:label_test_case_steps) %></legend>
+  <p class="nodata" id="no_steps_tip" <%= @test_case.test_case_steps.any? ? 'style="display:none"'.html_safe : '' %>><%= l(:label_no_data) %></p>
+  <table id="test_case_steps" class="list">
+    <thead>
+      <tr>
+        <th><%= l(:field_step_position) %></th>
+        <th><%= l(:field_step_action) %></th>
+        <th><%= l(:field_step_expected_result) %></th>
+        <th><%= l(:field_step_test_data) %></th>
+        <th><%= l(:field_step_notes) %></th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <%= form.fields_for :test_case_steps, (@test_case.test_case_steps.presence || TestCaseStep.new) do |step_form| %>
+        <% next if step_form.object.new_record? && action_name == 'edit' && @test_case.test_case_steps.empty? %>
+        <tr class="step">
+          <td><%= step_form.text_field :position, size: 3, class: 'step-position' %></td>
+          <td><%= step_form.text_area :action, rows: 2, cols: 30 %></td>
+          <td><%= step_form.text_area :expected_result, rows: 2, cols: 30 %></td>
+          <td><%= step_form.text_field :test_data, size: 15 %></td>
+          <td><%= step_form.text_field :notes, size: 20 %></td>
+          <td><%= link_to l(:button_delete), '#', class: 'icon icon-del remove-step' %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+  <p>
+    <%= link_to l(:button_add) + ' ' + l(:label_test_case_step), '#', class: 'icon icon-add add-step' %>
+  </p>
+</fieldset>
+
+<div class="box">
+  <p>
+    <%= form.label l :label_attachment_plural %>
+    <%= render partial: 'attachments/form' %>
+  </p>
+</div>
+
+<%= javascript_tag do %>
+  (function () {
+    function addStepRow() {
+      var tbody = document.querySelector('#test_case_steps tbody');
+      var count = tbody.querySelectorAll('tr.step').length;
+      var tr = document.createElement('tr');
+      tr.className = 'step';
+      var idx = new Date().getTime();
+      var fields = [
+        {t: 'text',  n: 'position',      v: count + 1, s: 3, text: true},
+        {t: 'textarea', n: 'action',     s: 2, cols: 30, text: true},
+        {t: 'textarea', n: 'expected_result', s: 2, cols: 30, text: true},
+        {t: 'text',  n: 'test_data',     s: 15, text: true},
+        {t: 'text',  n: 'notes',         s: 20, text: true}
+      ];
+      fields.forEach(function (f) {
+        var td = document.createElement('td');
+        var el;
+        if (f.t === 'textarea') {
+          el = document.createElement('textarea');
+          el.rows = f.s; el.cols = f.cols;
+        } else {
+          el = document.createElement('input');
+          el.type = 'text'; el.size = f.s;
+        }
+        el.name = 'test_case[test_case_steps_attributes][' + idx + '][' + f.n + ']';
+        el.value = f.v || '';
+        el.className = 'step-' + f.n.replace(/_/g, '-');
+        td.appendChild(el);
+        tr.appendChild(td);
+      });
+      var tdDel = document.createElement('td');
+      var delLink = document.createElement('a');
+      delLink.href = '#';
+      delLink.className = 'icon icon-del remove-step';
+      delLink.textContent = <%= "'#{l(:button_delete)}'".html_safe %>;
+      tdDel.appendChild(delLink);
+      tr.appendChild(tdDel);
+      tbody.appendChild(tr);
+      document.querySelector('#no_steps_tip').style.display = 'none';
+    }
+    document.querySelector('.add-step').addEventListener('click', function (e) { e.preventDefault(); addStepRow(); });
+    document.querySelector('#test_case_steps tbody').addEventListener('click', function (e) {
+      if (e.target.classList && e.target.classList.contains('remove-step')) {
+        e.preventDefault();
+        var tr = e.target.closest('tr.step');
+        if (tr) tr.parentNode.removeChild(tr);
+      }
+    });
+  })();
+<% end %>

@@ -1,0 +1,17 @@
+# Claude Code tooling metadata (not part of the plugin)
+/.claude/
+
+# Ruby / Bundler artifacts
+/.bundle/
+/vendor/bundle/
+*.gem
+
+# Test / coverage artifacts
+/coverage/
+/tmp/
+
+# OS / editor
+.DS_Store
+*.swp
+.idea/
+.vscode/

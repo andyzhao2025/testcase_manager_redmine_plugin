@@ -1,0 +1,97 @@
+<%= render :partial => 'action_menu', :locals => {:project_id => @project.name } %>
+
+<h2 class="inline-flex"><%= breadcrumb %><%=l(:label_test_case_executions)%> #<%= @test_case_execution.id %></h2>
+
+<div class="issue details">
+  <div class="subject">
+    <div>
+      <h3><%= @test_case.name %> <span class="status <%= @test_case_execution.status&.key %>"><%= @test_case_execution.status_name %></span></h3>
+    </div>
+  </div>
+  <div class="attributes">
+    <div class="splitcontent">
+      <div class="splitcontentleft">
+        <div class="status attribute">
+          <div class="label"><%=l(:field_test_plan)%></div>
+          <div id="test_plan" class="value"><%= link_to @test_case_execution.test_plan.name, project_test_plan_path(:project_id => @project.name, :id => @test_case_execution.test_plan.id) %></div>
+        </div>
+        <div class="status attribute">
+          <div class="label"><%=l(:field_test_case)%></div>
+          <div id="test_case" class="value"><%= link_to @test_case.name, project_test_case_path(:project_id => @project.name, :id => @test_case.id) %></div>
+        </div>
+        <div class="assigned-to attribute">
+          <div class="label"><%=l(:field_executor)%></div>
+          <div id="executor" class="value"><%= @test_case_execution.executor.name if @test_case_execution.executor %></div>
+        </div>
+        <div class="status attribute">
+          <div class="label"><%=l(:field_status)%></div>
+          <div id="status" class="value"><%= @test_case_execution.status_name %></div>
+        </div>
+      </div>
+      <div class="splitcontentleft">
+        <div class="scheduled-date attribute">
+          <div class="label"><%=l(:field_execution_date)%></div>
+          <div id="execution_date" class="value"><%= yyyymmdd_date(@test_case_execution.execution_date) %></div>
+        </div>
+        <div class="issue_id attribute">
+          <div class="label"><%=l(:field_defect_issue)%></div>
+          <div id="defect_issue" class="value">
+            <% if @test_case_execution.defect_issue %>
+              <%= link_to "##{@test_case_execution.defect_issue.id} #{@test_case_execution.defect_issue.subject}",
+                          issue_path(id: @test_case_execution.defect_issue.id) %>
+            <% end %>
+          </div>
+        </div>
+        <% if @test_case_execution.automation_source.present? %>
+          <div class="automation attribute">
+            <div class="label"><%=l(:field_automation_source)%></div>
+            <div id="automation_source" class="value"><%= @test_case_execution.automation_source %></div>
+          </div>
+        <% end %>
+        <% if @test_case_execution.external_run_id.present? %>
+          <div class="external-attribute">
+            <div class="label"><%=l(:field_external_run_id)%></div>
+            <div id="external_run_id" class="value"><%= @test_case_execution.external_run_id %></div>
+          </div>
+        <% end %>
+        <% if @test_case_execution.build_url.present? %>
+          <div class="build-attribute">
+            <div class="label"><%=l(:field_build_url)%></div>
+            <div id="build_url" class="value"><%= link_to @test_case_execution.build_url, @test_case_execution.build_url %></div>
+          </div>
+        <% end %>
+        <% if @test_case_execution.duration_seconds.present? %>
+          <div class="duration-attribute">
+            <div class="label"><%=l(:field_duration_seconds)%></div>
+            <div id="duration_seconds" class="value"><%= @test_case_execution.duration_seconds %></div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+    <div>
+      <p><%=l(:field_comment)%></p>
+      <div id="comment" class="wiki">
+        <%= textilizable @test_case_execution.comment %>
+      </div>
+    </div>
+  </div>
+  <div class="attributes">
+    <div>
+      <p><%=l(:field_scenario)%></p>
+      <pre id="scenario" class="wiki"><%= @test_case.scenario %></pre>
+    </div>
+    <div>
+      <p><%=l(:field_expected)%></p>
+      <pre id="expected" class="wiki"><%= @test_case.expected %></pre>
+    </div>
+  </div>
+  <% if @test_case_execution.attachments.any? %>
+    <hr />
+    <p><strong><%=l(:label_attachment_plural)%></strong></p>
+    <%= link_to_attachments @test_case_execution, :thumbnails => true %>
+  <% end %>
+</div>
+
+<% content_for :sidebar do %>
+  <%= render :partial => 'test_case_executions/sidebar' %>
+<% end %>

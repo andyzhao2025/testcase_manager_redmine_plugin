@@ -1,0 +1,10 @@
+<h2 class="inline-flex"><%= breadcrumb %><%=l(:label_test_plan_edit)%> #<%= @test_plan.id %></h2>
+
+<%= form_with model: @test_plan, url: project_test_plan_path do |f| %>
+  <%= render partial: 'test_plans/form', locals: {form: f} %>
+  <%= f.submit l(:button_update) %>
+<% end %>
+
+<% content_for :sidebar do %>
+  <%= render :partial => 'test_plans/sidebar' %>
+<% end %>
