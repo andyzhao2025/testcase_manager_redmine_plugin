@@ -112,6 +112,8 @@ ja:
   field_environment: "環境"
   field_scenario: "シナリオ"
   field_expected: "期待する結果"
+  field_subsystem: "サブシステム"
+  field_preconditions: "前提条件"
   field_latest_result: "テスト実行結果"
   field_latest_execution_date: "実行日"
   field_latest_status: "実行ステータス"

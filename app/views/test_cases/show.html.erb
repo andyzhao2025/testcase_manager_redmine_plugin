@@ -25,6 +25,10 @@
           <div class="label"><%=l(:field_priority)%></div>
           <div id="priority" class="value"><%= @test_case.priority.presence || l(:label_none) %></div>
         </div>
+        <div class="subsystem attribute">
+          <div class="label"><%=l(:field_subsystem)%></div>
+          <div id="subsystem" class="value"><%= @test_case.subsystem.presence || l(:label_none) %></div>
+        </div>
       </div>
       <div class="splitcontentleft">
         <div class="environment-date attribute">
@@ -73,6 +77,16 @@
       <%= textilizable(@test_case.expected) %>
     </div>
   </div>
+  <% if @test_case.preconditions.present? %>
+  <div class="attributes">
+    <div class="attribute">
+      <div class="label"><%=l(:field_preconditions)%></div>
+    </div>
+    <div id="preconditions">
+      <%= textilizable(@test_case.preconditions) %>
+    </div>
+  </div>
+  <% end %>
   <% if @test_case.attachments.any? %>
     <p><strong><%=l(:label_attachment_plural)%></strong></p>
     <%= link_to_attachments @test_case, :thumbnails => true %>

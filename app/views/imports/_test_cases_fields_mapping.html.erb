@@ -39,7 +39,15 @@
 </p>
 <p>
   <label for="import_mapping_expected"><%= l(:field_expected) %></label>
-  <%= mapping_select_tag @import, 'expected', :required => true %>
+  <%= mapping_select_tag @import, 'expected' %>
+</p>
+<p>
+  <label for="import_mapping_subsystem"><%= l(:field_subsystem) %></label>
+  <%= mapping_select_tag @import, 'subsystem' %>
+</p>
+<p>
+  <label for="import_mapping_preconditions"><%= l(:field_preconditions) %></label>
+  <%= mapping_select_tag @import, 'preconditions' %>
 </p>
 <p>
   <label for="import_mapping_case_state"><%= l(:field_case_state) %></label>

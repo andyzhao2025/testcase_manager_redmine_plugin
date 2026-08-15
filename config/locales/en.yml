@@ -113,6 +113,8 @@ en:
   field_environment: "Environment"
   field_scenario: "Scenario"
   field_expected: "Expected"
+  field_subsystem: "Subsystem"
+  field_preconditions: "Pre-conditions"
   field_latest_result: "Execution Result"
   field_latest_execution_date: "Execution Date"
   field_latest_status: "Execution Status"

@@ -13,7 +13,9 @@ class TestCase < ApplicationRecord
 
   validates :name, presence: true, length: { maximum: 255 }
   validates :scenario, presence: true
-  validates :expected, presence: true
+  # The authoritative expected result lives per-step (test_case_steps#expected_result);
+  # the case-level expected column is an optional compatibility/overview value.
+  validates :expected, presence: false
   validates :user, presence: true
   validates :project, presence: true
   CASE_STATES = %w[draft active deprecated archived].freeze
@@ -42,6 +44,8 @@ class TestCase < ApplicationRecord
     "expected",
     "case_state",
     "priority",
+    "subsystem",
+    "preconditions",
     "archived_at",
     "version",
     "test_case_steps_attributes",

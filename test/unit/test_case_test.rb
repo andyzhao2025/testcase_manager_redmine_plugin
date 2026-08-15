@@ -126,14 +126,25 @@ class TestCaseTest < ActiveSupport::TestCase
     assert_equal ["cannot be blank"], object.errors[:scenario]
   end
 
-  def test_missing_expected
+  def test_expected_optional
+    # expected is now optional; authority lives per-step in test_case_steps#expected_result
     object = TestCase.new(:project_id => 1,
                           :name => "dummy",
                           :scenario => "dummy",
                           :user => users(:users_001),
                           :environment => "dummy")
-    assert_equal true, object.invalid?
-    assert_equal ["cannot be blank"], object.errors[:expected]
+    assert_equal true, object.valid?
+    assert_empty object.errors[:expected]
+  end
+
+  def test_expected_blank_allowed
+    object = TestCase.new(:project_id => 1,
+                          :name => "dummy",
+                          :scenario => "dummy",
+                          :expected => "",
+                          :user => users(:users_001),
+                          :environment => "dummy")
+    assert_equal true, object.valid?
   end
 
   def test_missing_user

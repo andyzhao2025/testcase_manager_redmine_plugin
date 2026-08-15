@@ -7,6 +7,8 @@ class TestCaseImport < Import
     "environment" => "field_environment",
     "scenario" => "field_scenario",
     "expected" => "field_expected",
+    "subsystem" => "field_subsystem",
+    "preconditions" => "field_preconditions",
     "case_state" => "field_case_state",
     "priority" => "field_priority",
     "test_plan" => "field_test_plan"
@@ -87,6 +89,8 @@ class TestCaseImport < Import
       "environment" => row_value(row, "environment"),
       "scenario" => row_value(row, "scenario"),
       "expected" => row_value(row, "expected"),
+      "subsystem" => row_value(row, "subsystem"),
+      "preconditions" => row_value(row, "preconditions"),
     }
 
     if case_state = row_value(row, "case_state")

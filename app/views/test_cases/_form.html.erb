@@ -50,7 +50,15 @@
   </p>
   <p>
     <%= form.label :expected %>
-    <%= form.text_area :expected, required: true, id: "expected", cols: 60, rows: [[10, @test_case.expected.to_s.length / 50].max, 20].min %>
+    <%= form.text_area :expected, id: "expected", cols: 60, rows: [[10, @test_case.expected.to_s.length / 50].max, 20].min %>
+  </p>
+  <p>
+    <%= form.label :subsystem %>
+    <%= form.text_field :subsystem, size: 80, id: "subsystem" %>
+  </p>
+  <p>
+    <%= form.label :preconditions %>
+    <%= form.text_area :preconditions, id: "preconditions", cols: 60, rows: [[6, @test_case.preconditions.to_s.length / 50].max, 10].min %>
   </p>
 </div>
 
